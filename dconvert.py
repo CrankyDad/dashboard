@@ -7,7 +7,7 @@ import timeconverter
 
 logger = logging.getLogger(__name__)
 
-def convert_value(self, value, conversion = None):
+def convert_value(value, conversion = None):
     if value == None:
         return 'N/A'
     logger.debug('Converting value:'+str(value))

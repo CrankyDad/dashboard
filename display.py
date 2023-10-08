@@ -1,5 +1,5 @@
-from waveshare_epd import epd7in5_V2
-#import epaperdummy
+#from waveshare_epd import epd7in5_V2
+import epaperdummy
 
 import logging
 from PIL import Image
@@ -8,8 +8,8 @@ from config import partial_frame_limit
 logger = logging.getLogger(__name__)
 
 #epd = epd4in2.EPD()
-epd = epd7in5_V2.EPD()
-#epd = epaperdummy.EPD()
+#epd = epd7in5_V2.EPD()
+epd = epaperdummy.EPD()
 
 class DrawTarget:
     def __init__(self):
@@ -33,12 +33,10 @@ class DrawTarget:
             logger.debug('Drawing full frame')
             if self.insleep :
                 logger.debug('Wake up from sleep')
-  #              epd.init()
+                epd.init()
                 self.insleep = False
+                epd.Clear()
             epd.display(frame_buffer)
-# Debug , draw frame on screen
-#            self.buffer.show()
-# End debug
             self.partial_frames = 0
         else:
             #_display_frame_quick(frame_buffer)
@@ -46,8 +44,8 @@ class DrawTarget:
 
 #Send display to sleep during normal operation to prolong its life
         if tosleep:
-  #          epd.sleep()
-            self.insleep = True 
+           epd.sleep()
+           self.insleep = True 
             
     def clear_screen(self):
         if self.insleep :

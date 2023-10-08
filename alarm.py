@@ -138,7 +138,7 @@ class Alarmhandler:
         return self.alarm_active
 
 
-# Draw alarm message on an imange (buffer)
+# Draw alarm message on an image (buffer)
     def draw(self):
         alerttext=""
         j=0

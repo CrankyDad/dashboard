@@ -81,6 +81,7 @@ class EPD:
         logger.debug("SetLut")
 
     def init(self):
+        logger.debug("Init display")
         return 0
  
     def getbuffer(self, image):
@@ -105,7 +106,7 @@ class EPD:
 
     def display(self, image):
         image.show()
-        time.sleep(0.1)
+        time.sleep(1)
 #        epdconfig.delay_ms(100)
 
     def Clear(self):

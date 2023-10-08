@@ -11,7 +11,7 @@ import alarm
 import threading as th
 import config
 from config import dashboard
-#from convert import convert_value
+import dconvert
 
 logger = logging.getLogger(__name__)
 
@@ -138,49 +138,6 @@ class Draw:
                 'rendered': False
             }
 
-    def convert_value(self, value, conversion = None):
-        if value == None:
-            return 'N/A'
-        logger.debug('Converting value:'+str(value))
-        if not conversion:
-            return str(value)
-        if conversion == 'K_C':
-            return "{0:.1f}".format(value - 273.15)
-        if conversion == 'm_m':
-            return "{0:.1f}".format(value)
-        if conversion == 'int_str':
-            return str(int(value))
-        if conversion == '%':
-            return str(int(value * 100))
-        if conversion == 'Pa_hPa':
-            return str(int(value / 100))
-        if conversion == 'rad_deg':
-            return str(int(math.degrees(value)))
-        if conversion == 'm/s_knots':
-            return "{0:.1f}".format(value * 1.944)
-        if conversion == 'm_NM':
-            return "{0:.1f}".format(value / 1852)
-        if conversion == 'Z_local_2':
-            return tconvert('%H:%M',value)
-        if conversion == 'Z_local_3':
-            return tconvert('%H:%M:%S',value)
-        if conversion == '.x':
-            return "{0:.1f}".format(value)
-        if conversion == '.xx':
-            return "{0:.2f}".format(value)
-        ##Older conversions for backward compability
-        if conversion == 'Pa':
-            return str(int(value / 100))
-        if conversion == 'rad':
-            return str(int(math.degrees(value)))
-        if conversion == 'm/s':
-            return "{0:.1f}".format(value * 1.944)
-        if conversion == 'K':
-            return "{0:.1f}".format(value - 273.15)
-        if conversion == 'm':
-            return "{0:.1f}".format(value)
-        ## Default if no conversions was found
-        return 'Undef conv.'
     
     def draw_slot(self, path):
         self.prepare_slot_data(path)
@@ -190,12 +147,12 @@ class Draw:
         slot = list(dashboard[str(self.display)]).index(path)
         label = dashboard[str(self.display)][path]['label']
         logger.debug("Value to print:" + str(self.values[path]['value']))
-        #value = convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
-        value = self.convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
+        value = dconvert.convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
+        #value = self.convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
         logger.debug('Value to be printed:' + value)
 
         if dashboard['layout'][self.display]['number_of_slots'] == 0:
-            # No need to continue if thera are no slots to draw
+            # No need to continue if there are no slots to draw
             return
 
 # Draw top row slots
@@ -308,6 +265,7 @@ class Draw:
 ## Draw alarm screen if alarm is active
         if self.display == 'alarm':
             logger.debug("Alarm is to be drawn")
+            endtosleep=False
             self.target.draw(self.alarmhandler.draw(),0,0)
 
 ## Begin drawing to display
@@ -319,10 +277,6 @@ class Draw:
             sendtosleep=False
             
         self.target.flush(full,sendtosleep)
-
-# Wait 10s so we show our cool slash screen and just not flicker..
-#        if self.display == 'loading':
-#           time.sleep(10)
 
         logger.debug('After display has been flushed')
         flush_end = time.time()
@@ -357,10 +311,10 @@ class Draw:
             self.timer.set()
             self.timer=None
         logger.debug("Setting new refresh rate to {}".format(refresh_rate))
-# Redraw frame after 20 seconds to let some data come in to avoid N/As for a full cycle
+# Redraw frame after 30 seconds to let some data come in to avoid N/As for a full cycle
 # however, don't do this for alarms as there is no data and short refresh
         if (self.display != "alarm"):
-            S = th.Timer(20.0, self.draw_frame,(not(config.partial_update),))  
+            S = th.Timer(30.0, self.draw_frame,(not(config.partial_update),))  
             S.start()  
 
 # Start a timer to continously to redraw the screen
@@ -388,8 +342,8 @@ class Draw:
             slot = list(dashboard[str(self.display)]).index(path)
             if slot >= dashboard['layout'][str(self.display)]['number_of_slots'] :
                 label = dashboard[str(self.display)][path]['label']
-                #value = convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
-                value = self.convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
+                value = dconvert.convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
+                #value = self.convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
                 drawtext = label + " " + value
                 draw.text(((text_slot%number_textslots)*row_space, (text_slot//number_textslots)*slot_space), drawtext, font=text_field_font)
                 text_slot += 1
