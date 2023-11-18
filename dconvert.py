@@ -1,9 +1,13 @@
 import logging
-import datetime
+#import datetime
+from dateutil.parser import *
+from dateutil.tz import *
+from datetime import *
 #import dateutil.parser
 import time
 import math
-import timeconverter
+#import timeconverter
+from config import dashboard
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +55,21 @@ def convert_value(value, conversion = None):
 ## Default if no conversions was found
     return 'Undef conv.'
 
-def tconvert(self, printformat,dtvalue, latlon=None):
+def tconvert(printformat,dtvalue, latlon=None):
 
-    timeoffset=int(dashboard['TZ_default_offset'])
-    l_zone=timezone(timedelta(seconds=timeoffset))
+    # timeoffset=int(dashboard['TZ_default_offset'])
+    # l_zone=timezone(timedelta(seconds=timeoffset))
     
-    utc_value=datetime.fromisoformat(utc_time[0:len(dtvalue)-1] + "+00:00")
-    local_value=dtvalue.astimezone(l_zone)
+    # utc_value=datetime.fromisoformat(utc_time[0:len(dtvalue)-1] + "+00:00")
+    # local_value=dtvalue.astimezone(l_zone)
 
-    return local_value.strftime(printformat)
+    # return local_value.strftime(printformat)
+    
+    timeoffset=int(dashboard['TZ_default_offset'])
+
+    delta=timedelta(seconds=timeoffset)
+    logger.debug("Date/Time to convert: " + str(dtvalue))
+    local_dtvalue=dtvalue+delta
+
+    logger.debug("Data/Time after convert:" + local_dtvalue.strftime(printformat))
+    return local_dtvalue.strftime(printformat)

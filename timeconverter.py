@@ -4,7 +4,6 @@ import logging
 from dateutil.parser import *
 from dateutil.tz import *
 from datetime import *
-#import config
 from config import dashboard
 
 logger = logging.getLogger(__name__)

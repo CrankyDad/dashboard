@@ -18,8 +18,8 @@ class DrawTarget:
         self.height = epd.height
         self.partial_frames = 0
         self.partial_frame_limit = partial_frame_limit
-        epd.init()
         self.insleep = False
+        epd.init()
         epd.Clear()
 
     def draw(self, image: Image, x: int = 0, y: int = 0):
@@ -44,8 +44,9 @@ class DrawTarget:
 
 #Send display to sleep during normal operation to prolong its life
         if tosleep:
-           epd.sleep()
-           self.insleep = True 
+            logger.debug('Sending the display to sleep')
+            epd.sleep()
+            self.insleep = True 
             
     def clear_screen(self):
         if self.insleep :
@@ -54,3 +55,4 @@ class DrawTarget:
             self.insleep = False
         epd.Clear()
         epd.sleep()
+        self.insleep = True

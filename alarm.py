@@ -11,7 +11,8 @@ import dateutil.parser
 #import time
 #import math
 #import timeinterval
-import timeconverter
+#import timeconverter
+import dconvert
 
 #import config
 from config import dashboard
@@ -47,26 +48,37 @@ class Alarmhandler:
 ## Handle notificatios that are not alarms (state {normal, nominal}
 ## Handle notifications that are alarms(still safe state:{alert}
 ## Handle notifications that are important state:{warn,alarm,emergency}
-        state = msg['value']['state']
-        state_group=states[state]
+    
 #        time_update = False
 
+
+
+## Empty value of a previous alarm after restart of dashboard
+## Just ignore those     
+        if msg['value']==None and not msg['path'] in self.values:
+            logger.debug('Ignoring old cleared value')
+            return (0, False)
+
 ## Empty value of a previous alarm (should indicate to remove notification)     
-        if not msg['value'] and msg['path'] in self.values:
+        if msg['value']==None and msg['path'] in self.values:
+            logger.debug('Alarm cleard by setting value to None')
             if self.values[msg['path']]['state_group']==1 :
                 self.number_of_active_warn-=1
             elif self.values[msg['path']]['state_group']==2 :
-                self.number_of_active -= 1 
+                self.number_of_active -= 1
 
             del self.values[msg['path']]
             logger.debug("Removed alarm:" + str(msg['path']))
+            state_group=0
 
-## We don't want to add normal/nominal messages, drop them
-#         if state_group == 0 and (not msg['path'] in self.values):
-#             logger.debug("Got notification normal/noninal not in DB. Drop it")
+## Extract state (level) IF present
+        if msg['value']!=None:
+            state = msg['value']['state']
+            state_group=states[state]
+
 
 ## Handle transitions of older notifications recieved
-        if msg['path'] in self.values:
+        if msg['path'] in self.values and msg['value']!=None:
 
 ## Handle alarms that have transitioned to normal/nominal from warning or alarm      
             if state_group == 0:
@@ -90,8 +102,11 @@ class Alarmhandler:
                     self.number_of_active += 1
                 #time_update = True
                 alarmtime=self.values[msg['path']]['time']
+
+
 ## It's a new alarm
-        else:
+        if msg['value']!=None and not msg['path'] in self.values:
+            logger.debug('New alarm message')
             #time_update = True
             if state_group == 1:
                 self.number_of_active_warn += 1
@@ -149,7 +164,7 @@ class Alarmhandler:
         for path in self.values:
 ## Only draw alarms and emergencies
             if self.values[path]['state_group']==2 :
-                alarmtime=timeconverter.tconvert('%H:%M:%S',self.values[path]['time'])
+                alarmtime=dconvert.tconvert('%H:%M:%S',self.values[path]['time'])
                 if j>0:
                     alerttext+=("\n")
                 alerttext+=self.values[path]['message']+"  "+alarmtime

@@ -6,7 +6,7 @@ import dateutil.parser
 import time
 import math
 import timeinterval
-from timeconverter import tconvert
+#from timeconverter import tconvert
 import alarm
 import threading as th
 import config
@@ -237,22 +237,26 @@ class Draw:
         draw_frame(not(config.partial_update))
 
     def draw_frame(self, full = False):
-
+        
+        if self.drawing == True:
+            logger.debug("Already drawing screen. Abort draw")
+            return
+            
+        if self.display == None:
+            return  #Connection issues and no status. Just wait.
+        
         logger.debug("Start draw frame")
 # As as default, put the display to sleep according to WaveShare notes
         sendtosleep=True
-        
-        if self.drawing == True:
-            return
-        
         self.drawing = True
         self.update_time()
 
-        if self.display == None:
-            return  #Connection issues and no status
+# Do not put the display into sleep as we expect update soon       
+        if self.display == 'loading':
+            sendtosleep=False
             
  # Populate all slots based on config if not alarm
-        if self.display != 'alarm':
+        if self.display != 'alarm' and self.display != 'loading':
             for path in dashboard[str(self.display)]:
                 self.draw_slot(path)
             #Add text field
@@ -265,16 +269,13 @@ class Draw:
 ## Draw alarm screen if alarm is active
         if self.display == 'alarm':
             logger.debug("Alarm is to be drawn")
-            endtosleep=False
+            sendtosleep=False
             self.target.draw(self.alarmhandler.draw(),0,0)
 
 ## Begin drawing to display
         flush_start = time.time()
 #        logger.debug('Before flush of display')
  
-# Do not put the display into sleep as we expect update soon       
-        if self.display == 'loading':
-            sendtosleep=False
             
         self.target.flush(full,sendtosleep)
 
@@ -282,6 +283,7 @@ class Draw:
         flush_end = time.time()
         if flush_end > flush_start:
             self.expected_flush_time = int(self.expected_flush_time * 0.9 + (flush_end - flush_start) * 0.1)
+            logger.debug('Expeced flushtime:' + str(self.expected_flush_time)+'   Start flush:' + str(flush_start) + '    End flush:' + str(flush_end))
         self.drawing = False
 
     def variable_loop(self):
@@ -312,8 +314,8 @@ class Draw:
             self.timer=None
         logger.debug("Setting new refresh rate to {}".format(refresh_rate))
 # Redraw frame after 30 seconds to let some data come in to avoid N/As for a full cycle
-# however, don't do this for alarms as there is no data and short refresh
-        if (self.display != "alarm"):
+# however, don't do this for alarms or loadscreen as there is no data and short refresh
+        if (self.display != "alarm" and self.display != "loading"):
             S = th.Timer(30.0, self.draw_frame,(not(config.partial_update),))  
             S.start()  
 
@@ -325,6 +327,7 @@ class Draw:
         self.drawing = True
         self.target.clear_screen()
         logger.debug('Clear_screen')
+        
 
     def draw_text_field(self):
         image = Image.new('1', (self.target.width-2*dashboard['layout']['space_edges'], dashboard['layout']['text_field_height']), 1)
