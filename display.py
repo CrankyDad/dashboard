@@ -36,12 +36,14 @@ class DrawTarget:
             logger.debug('Unable to get lock for display. Skipping writing')
             return
         try:
+            logger.debug('Got lock for display. Commence flushing')
             frame_buffer = epd.getbuffer(self.buffer)
             if (full == True) or (self.partial_frames >= self.partial_frame_limit):
-                logger.debug('Drawing full frame')
+                logger.debug('Drawing full frame. Status of sleep:' + str(self.insleep) )
                 if self.insleep :
-                    logger.debug('Wake up from sleep')
+                    logger.debug('To wake up from sleep')
                     epd.init()
+                    logger.debug('After wake up from sleep')
                     self.insleep = False
       #              epd.Clear()
                 epd.display(frame_buffer)
