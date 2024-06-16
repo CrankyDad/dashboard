@@ -32,7 +32,7 @@ class DrawTarget:
     def flush(self, full = False, tosleep=True):
         logging.debug('Waiting for the lock in display')
 # Just return if dislay is used
-        if not self.lock.acquire():
+        if not self.lock.acquire(False):
             logger.debug('Unable to get lock for display. Skipping writing')
             return
         try:
