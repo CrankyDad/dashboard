@@ -1,6 +1,7 @@
 #from waveshare_epd import epd7in5_V2
 import epaperdummy
 
+import threading
 import logging
 from PIL import Image
 from config import partial_frame_limit
@@ -13,6 +14,7 @@ epd = epaperdummy.EPD()
 
 class DrawTarget:
     def __init__(self):
+        self.lock = threading.Lock()
         self.buffer = Image.new("1", (epd.width, epd.height), 1)
         self.width = epd.width
         self.height = epd.height
@@ -28,25 +30,37 @@ class DrawTarget:
         self.buffer.paste(image, (x, y))
 
     def flush(self, full = False, tosleep=True):
-        frame_buffer = epd.getbuffer(self.buffer)
-        if (full == True) or (self.partial_frames >= self.partial_frame_limit):
-            logger.debug('Drawing full frame')
-            if self.insleep :
-                logger.debug('Wake up from sleep')
-                epd.init()
-                self.insleep = False
-                epd.Clear()
-            epd.display(frame_buffer)
-            self.partial_frames = 0
-        else:
-            #_display_frame_quick(frame_buffer)
-            self.partial_frames += 1
+        logging.debug('Waiting for the lock in display')
+# Just return if dislay is used
+        if not self.lock.acquire():
+            logger.debug('Unable to get lock for display. Skipping writing')
+            return
+        try:
+            frame_buffer = epd.getbuffer(self.buffer)
+            if (full == True) or (self.partial_frames >= self.partial_frame_limit):
+                logger.debug('Drawing full frame')
+                if self.insleep :
+                    logger.debug('Wake up from sleep')
+                    epd.init()
+                    self.insleep = False
+      #              epd.Clear()
+                epd.display(frame_buffer)
+                self.partial_frames = 0
+            else:
+                #_display_frame_quick(frame_buffer)
+                self.partial_frames += 1
 
 #Send display to sleep during normal operation to prolong its life
-        if tosleep:
-            logger.debug('Sending the display to sleep')
-            epd.sleep()
-            self.insleep = True 
+            if tosleep:
+                logger.debug('Sending the display to sleep')
+                epd.sleep()
+                logger.debug('Sent display to sleep')
+                self.insleep = True
+ 
+ #Wrap up after flushing       
+        finally:
+            logging.debug('Released the lock for the display')
+            self.lock.release()
             
     def clear_screen(self):
         if self.insleep :
