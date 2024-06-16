@@ -38,17 +38,20 @@ class DrawTarget:
         try:
             logger.debug('Got lock for display. Commence flushing')
             frame_buffer = epd.getbuffer(self.buffer)
+            
+            if self.insleep :
+                logger.debug('To wake up from sleep')
+                epd.init()
+                logger.debug('After wake up from sleep')
+                self.insleep = False
+      #              epd.Clear()
+            
             if (full == True) or (self.partial_frames >= self.partial_frame_limit):
                 logger.debug('Drawing full frame. Status of sleep:' + str(self.insleep) )
-                if self.insleep :
-                    logger.debug('To wake up from sleep')
-                    epd.init()
-                    logger.debug('After wake up from sleep')
-                    self.insleep = False
-      #              epd.Clear()
                 epd.display(frame_buffer)
                 self.partial_frames = 0
             else:
+                logger.debug('Drawing partial frame. Status of sleep:' + str(self.insleep) )
                 #_display_frame_quick(frame_buffer)
                 self.partial_frames += 1
 
@@ -58,6 +61,8 @@ class DrawTarget:
                 epd.sleep()
                 logger.debug('Sent display to sleep')
                 self.insleep = True
+            else:
+                logger.debug('Skipped sending the display to sleep')   
  
  #Wrap up after flushing       
         finally:
