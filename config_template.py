@@ -87,7 +87,7 @@ dashboard = {
         'other_row_height': 80,
         'text_field_height':100,
         'text_field_offset':325,
-        'time_width':91,
+        'time_width':100,
         'time_height':40,
         'alarm_screen':True,
         
@@ -164,7 +164,7 @@ dashboard = {
         }
     },
 ##########################################################################
-## Screen content
+## Screen content for screens were don't want content
 ##########################################################################
     'loading': {},
     'alarm': {},
