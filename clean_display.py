@@ -9,6 +9,10 @@ import traceback
 
 logging.basicConfig(level=logging.WARNING)
 
+# This scipt is used to clean and put the display to sleep.
+# Useful if the program crashes and leaves the display painted and powered.
+# Substitute references to epd7in5_V2 to the correct display
+
 try:
     logging.info("epd7in5_V2 init")
     epd = epd7in5_V2.EPD()
