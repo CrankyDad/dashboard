@@ -47,11 +47,11 @@ class DrawTarget:
       #              epd.Clear()
             
             if (full == True) or (self.partial_frames >= self.partial_frame_limit):
-                logger.debug('Drawing full frame. Status of sleep:' + str(self.insleep) )
+                logger.debug('Drawing full frame. Status of sleep:%s', self.insleep)
                 epd.display(frame_buffer)
                 self.partial_frames = 0
             else:
-                logger.debug('Drawing partial frame. Status of sleep:' + str(self.insleep) )
+                logger.debug('Drawing partial frame. Status of sleep:%s',self.insleep)
                 #_display_frame_quick(frame_buffer)
                 self.partial_frames += 1
 

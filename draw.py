@@ -1,8 +1,8 @@
 import os
 from PIL import Image,ImageDraw,ImageFont
 import logging
-import datetime
-import dateutil.parser
+import datetime as dt
+#import dateutil.parser
 import time
 import math
 import timeinterval
@@ -79,7 +79,7 @@ class Draw:
         paths.append('navigation.state')
         if dashboard['layout']['alarm_screen']:
             paths.append('notifications.*')
-        logger.debug("Paths subscribed to:" + str(paths))
+        logger.debug("Paths subscribed to: %s", paths)
         return paths
 
     def show_message(self, msg):
@@ -106,9 +106,10 @@ class Draw:
             self.target.draw(image,startx+50,self.target.height-time_height-dashboard['layout']['space_edges'])
 
     def update_value(self, msg, timestamp):
+
         self.values[msg['path']] = {
             'value': msg['value'],
-            'time': dateutil.parser.parse(timestamp),
+            'time': dt.datetime.fromisoformat(timestamp.replace("Z","+00:00")),
             'rendered': False
         }
     
@@ -124,17 +125,17 @@ class Draw:
             # Haven't received data for this slot
             self.values[path] = {
                 'value': None,
-                'time': datetime.datetime.now(datetime.timezone.utc),
+                'time': dt.datetime.now(dt.timezone.utc),
                 'rendered': False
             }
-        since_update = (datetime.datetime.now(datetime.timezone.utc) - self.values[path]['time']).total_seconds()
+        since_update = (dt.datetime.now(dt.timezone.utc) - self.values[path]['time']).total_seconds()
         if dashboard[str(self.display)][path] and since_update > dashboard[str(self.display)][path]['max_age']:
             #print("Setting path {} as stale".format(path))
             logger.info("Setting path {} as stale".format(path))
             # Stale value, switch to n/a
             self.values[path] = {
                 'value': None,
-                'time': datetime.datetime.now(datetime.timezone.utc),
+                'time': dt.datetime.now(dt.timezone.utc),
                 'rendered': False
             }
 
@@ -144,9 +145,15 @@ class Draw:
         if self.values[path]['rendered'] == True:
             # No need to re-render
             return
-        slot = list(dashboard[str(self.display)]).index(path)
+ #       slot = list(dashboard[str(self.display)]).index(path)
+        self.slot_lookup = {
+            p: i
+            for i, p in enumerate(dashboard[self.display])
+        }
+        slot = self.slot_lookup[path]
+        
         label = dashboard[str(self.display)][path]['label']
-        logger.debug("Value to print:" + str(self.values[path]['value']))
+        logger.debug("Value to print:%s", self.values[path]['value'])
         value = dconvert.convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
         #value = self.convert_value(self.values[path]['value'], dashboard[str(self.display)][path]['conversion'])
         logger.debug('Value to be printed:' + value)
@@ -202,7 +209,7 @@ class Draw:
         self.values[path]['rendered'] = True
 
     def get_time(self):
-        now = datetime.datetime.now() + datetime.timedelta(seconds=self.expected_flush_time)
+        now = dt.datetime.now() + dt.timedelta(seconds=self.expected_flush_time)
         return now.strftime(str(dashboard['time_format']))
 
     def update_time(self):
@@ -283,23 +290,23 @@ class Draw:
         flush_end = time.time()
         if flush_end > flush_start:
             self.expected_flush_time = int(self.expected_flush_time * 0.9 + (flush_end - flush_start) * 0.1)
-            logger.debug('Expeced flushtime:' + str(self.expected_flush_time)+'   Start flush:' + str(flush_start) + '    End flush:' + str(flush_end))
+            logger.debug('Expeced flushtime:%s   Start flush:%s    End flush:%s', self.expected_flush_time, flush_start, flush_end)
         self.drawing = False
 
     def variable_loop(self):
         if (str(self.display) == "sailing") or (str(self.display) == "motoring"):
             # We want to update speed and course frequently
-            logger.debug("Moving:Setting update loop to:" + str(config.loop_time_moving))
+            logger.debug("Moving:Setting update loop to:%s", config.loop_time_moving)
             self.loop(config.loop_time_moving)
         elif (self.display == "anchored"):
             # Distance to anchor is also somewhat critical value
-            logger.debug("Anchor:Setting update loop to:" + str(config.loop_time_anchor))
+            logger.debug("Anchor:Setting update loop to:%s",config.loop_time_anchor)
             self.loop(config.loop_time_anchor)
         elif (self.display == "alarm"):
-            logger.debug("Alarm:Setting update loop to:" + str(config.loop_time_alarm))
+            logger.debug("Alarm:Setting update loop to:%s", config.loop_time_alarm)
             self.loop(config.loop_time_alarm)
         elif (self.display == "moored"):
-            logger.debug("Moored:Setting update loop to:" + str(config.loop_time_moored))
+            logger.debug("Moored:Setting update loop to:%s", config.loop_time_moored)
             self.loop(config.loop_time_moored)
         else:
             # Other not normal statuses. Short update cycle as we expect a change

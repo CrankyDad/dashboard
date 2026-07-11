@@ -6,8 +6,8 @@
 
 from PIL import ImageDraw,Image
 import logging
-#import datetime
-import dateutil.parser
+import datetime as dt
+#import dateutil.parser
 #import time
 #import math
 #import timeinterval
@@ -42,8 +42,8 @@ class Alarmhandler:
 ## Return touple (Active alarm (BOOL), Transition (TRUE of active alarm has changed since last)
     def update_alarm(self, msg, timestamp):
 #        state_change = False
-        logger.debug("Got an alarm message: " + str(msg))
-        logger.debug("Number of alarms before update:" + str(self.number_of_active))
+        logger.debug("Got an alarm message: %s", msg)
+        logger.debug("Number of alarms before update: %s", self.number_of_active)
         
 ## Handle notificatios that are not alarms (state {normal, nominal}
 ## Handle notifications that are alarms(still safe state:{alert}
@@ -68,7 +68,7 @@ class Alarmhandler:
                 self.number_of_active -= 1
 
             del self.values[msg['path']]
-            logger.debug("Removed alarm:" + str(msg['path']))
+            logger.debug("Removed alarm: %s", msg['path'])
             state_group=0
 
 ## Extract state (level) IF present
@@ -112,7 +112,7 @@ class Alarmhandler:
                 self.number_of_active_warn += 1
             if state_group == 2:
                 self.number_of_active += 1
-            alarmtime=dateutil.parser.parse(timestamp)
+            alarmtime=dt.datetime.fromisoformat(timestamp.replace("Z","+00:00"))
 
 ## Update internal list if an alarm or alert
         if state_group !=0 :
@@ -128,9 +128,9 @@ class Alarmhandler:
         
         self.alarm_active = (self.number_of_active>0)
 
-        logger.debug("Done update alarm. Status: Number of alarms:" + str(self.number_of_active) + " Alarm active status:" + str(self.alarm_active))
-        logger.debug("Alarms:" + str(self.values))
-        logger.debug("Status change:" + str(not old_alarm_active == self.alarm_active))
+        logger.debug("Done update alarm. Status: Number of alarms:%s  Alarm active status:%s", self.number_of_active, self.alarm_active)
+        logger.debug("Alarms:%s",self.values)
+        logger.debug("Status change: %s", not (old_alarm_active == self.alarm_active))
         
         return (self.alarm_active, not old_alarm_active == self.alarm_active)
     
@@ -161,17 +161,24 @@ class Alarmhandler:
         image = Image.new('1', (self.width, self.height-time_height-int(dashboard['layout']['space_edges'])) , 1)
         draw = ImageDraw.Draw(image)
      
+        alarms=[]
+     
         for path in self.values:
 ## Only draw alarms and emergencies
             if self.values[path]['state_group']==2 :
                 alarmtime=dconvert.tconvert('%H:%M:%S',self.values[path]['time'])
-                if j>0:
-                    alerttext+=("\n")
-                alerttext+=self.values[path]['message']+"  "+alarmtime
-                j+=1
+                alarms.append(self.values[path]['message']+"  "+alarmtime)
                 
-        logger.debug("Alarm text to draw:" + alerttext)    
-        draw.text((int(dashboard['layout']['space_edges']),int(dashboard['layout']['space_edges'])), alerttext, font=self.font)
+#                if j>0:
+#                    alerttext+=("\n")
+#                
+#                alerttext+=self.values[path]['message']+"  "+alarmtime
+#                j+=1
+        
+#        logger.debug("Alarm text to draw:" + alerttext)    
+#        draw.text((int(dashboard['layout']['space_edges']),int(dashboard['layout']['space_edges'])), alerttext, font=self.font)
+        logger.debug("Alarm text to draw:" + "\n".join(alarms))    
+        draw.text((int(dashboard['layout']['space_edges']),int(dashboard['layout']['space_edges'])), "\n".join(alarms), font=self.font)
         return image
     
 # Return warnings as a string

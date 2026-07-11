@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def convert_value(value, conversion = None):
     if value == None:
         return 'N/A'
-    logger.debug('Converting value:'+str(value))
+    logger.debug("Converting value:%s", value)
     if not conversion:
         return str(value)
     if conversion == 'K_C':
@@ -68,7 +68,7 @@ def tconvert(printformat,dtvalue, latlon=None):
     timeoffset=int(dashboard['TZ_default_offset'])
 
     delta=timedelta(seconds=timeoffset)
-    logger.debug("Date/Time to convert: " + str(dtvalue))
+    logger.debug("Date/Time to convert: %s", dtvalue)
     local_dtvalue=dtvalue+delta
 
     logger.debug("Data/Time after convert:" + local_dtvalue.strftime(printformat))
