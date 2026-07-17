@@ -29,6 +29,15 @@ loop_time_moving=180000
 loop_time_anchor=300000
 loop_time_moored=600000
 
+#### One-time fetch #######
+# If true, the display only subscribes to paths that would change screen
+# such as notifications and navigation.state
+# All values are instead fetched when the screen it to be redrawn
+# This takes load of the SignalK server as well as avoiding constanly
+# updating the copy of the values subscribed to.
+#
+one_time_fetch=True
+
 # Global settings for all screens (moored, sailing etc)
 #
 # first_row_height : Size of the bigger first row in pixels

@@ -1,10 +1,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-/assets/nasalization-rg.otf
+assets/nasalization-rg.otf
 config.py
-/assets/*.otf
-/assets/*.ttf
+assets/*.otf
+assets/*.ttf
 *~
 *.bak*
-
+testbed

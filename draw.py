@@ -12,6 +12,7 @@ import threading as th
 import config
 from config import dashboard
 import dconvert
+import signalk_otf
 
 logger = logging.getLogger(__name__)
 
@@ -76,10 +77,9 @@ class Draw:
         if self.display == None :
             return ('navigation.state')  #Bug as display is none on error
         paths = list(dashboard[str(self.display)])
-        paths.append('navigation.state')
-        if dashboard['layout']['alarm_screen']:
-            paths.append('notifications.*')
-        logger.debug("Paths subscribed to: %s", paths)
+   #    paths.append('navigation.state')
+   #     if dashboard['layout']['alarm_screen']:
+   #         paths.append('notifications.*')
         return paths
 
     def show_message(self, msg):

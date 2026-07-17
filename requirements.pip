@@ -5,3 +5,5 @@ websocket-client
 python-dateutil
 timeinterval
 datetime
+requests
+
