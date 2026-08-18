@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 target = display.DrawTarget()
 dashboard = draw.Draw(target)
 
+
+
 def on_message(ws, message):
     alarm_change=False
     nav_state_change=False
@@ -66,7 +68,7 @@ def on_error(ws, error):
         return
     logging.info("Trying to reconnect")
     dashboard.set_display('loading')
-    time.sleep(10)
+    time.sleep(20)
     dashboard.show_message('Trying to connect...')
     signalk.connect(on_message, on_error, on_open, on_close)
 

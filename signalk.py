@@ -6,6 +6,8 @@ import logging
 from config import signalk_host, signalk_port, dashboard
 
 logger = logging.getLogger(__name__)
+ws=None
+wst=None
 
 def get_state():
 	url = 'http://{}:{}/signalk/v1/api/vessels/self/navigation/state/value'.format(signalk_host, signalk_port)
@@ -19,8 +21,16 @@ def get_state():
 	except:
 		return None
 
+def clean_up (ws, wst):
+	#Check if there alreay is a running connection and thread
+	if ws is not None:
+		logger.debug("Cleanup found open websocket")
+		ws.close()
+		wst.end()
+
 def connect(on_message, on_error, on_open, on_close):
 	url = 'ws://{}:{}/signalk/v1/stream?subscribe=none'.format(signalk_host, signalk_port)
+		
 	ws = websocket.WebSocketApp(url,
 		on_message = on_message,
 		on_error = on_error,
@@ -56,7 +66,6 @@ def subscribe(ws, pathlist):
 	sf_paths=[]
 	sf_paths.append('navigation.state')
 		
-	
  # If alarmscreen add notifications, see draw line
 	if dashboard['layout']['alarm_screen']:
 		sf_paths.append('notifications.*')
