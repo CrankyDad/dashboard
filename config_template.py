@@ -24,6 +24,7 @@ partial_frame_limit = 20
 # Refreshtime for a display is quite long (seconds) for a full refresh, 
 # do not make this too short if the screen is not using partial refresh.
 # As per WaveShare notes, a full refresh time should not be lower than 180s (180000 ms)
+# 10 minutes are 600.000 ms
 loop_time_alarm=30000
 loop_time_moving=180000
 loop_time_anchor=300000
@@ -31,12 +32,17 @@ loop_time_moored=600000
 
 #### One-time fetch #######
 # If true, the display only subscribes to paths that would change screen
-# such as notifications and navigation.state
+# such as notifications and navigation.state and notifications
 # All values are instead fetched when the screen it to be redrawn
 # This takes load of the SignalK server as well as avoiding constanly
 # updating the copy of the values subscribed to.
 #
 one_time_fetch=True
+
+#### Notification filters #######
+# Below are keywords in notifications. If one of the keyword
+# apperas in a notification, the notification will be ignored
+notification_filter = ["unknown","WPArrival","Seatalk"]
 
 # Global settings for all screens (moored, sailing etc)
 #
